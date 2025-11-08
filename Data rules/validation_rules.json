@@ -1,0 +1,391 @@
+{
+  "schema_version": "1.0",
+  "last_updated": "2024-11-08",
+  "description": "Insurance claims data validation rules schema",
+  "fields": [
+    {
+      "field_name": "CLAIM_NUMBER",
+      "field_id": 1,
+      "data_type": "string",
+      "required": true,
+      "nullable": false,
+      "constraints": {
+        "min_length": 8,
+        "max_length": 20,
+        "pattern": null,
+        "unique": true
+      },
+      "validation_rules": [
+        "Must be non-empty",
+        "Must be unique across dataset",
+        "Can be numeric, alphabetic, or alphanumeric"
+      ]
+    },
+    {
+      "field_name": "DATE_OF_BIRTH",
+      "field_id": 2,
+      "data_type": "date",
+      "required": true,
+      "nullable": false,
+      "constraints": {
+        "format": ["YYYY-MM-DD", "MM/DD/YYYY"],
+        "min_date": "1900-01-01",
+        "max_date": "current_date",
+        "future_allowed": false
+      },
+      "validation_rules": [
+        "Must be valid calendar date",
+        "Cannot be in the future",
+        "Must be between 1900-01-01 and current date"
+      ]
+    },
+    {
+      "field_name": "GENDER",
+      "field_id": 3,
+      "data_type": "categorical",
+      "required": true,
+      "nullable": false,
+      "constraints": {
+        "allowed_values": ["M", "MALE", "F", "FEMALE", "X", "OTHER", "U", "UNKNOWN"],
+        "case_sensitive": false
+      },
+      "validation_rules": [
+        "Must match one of the predefined valid values",
+        "Case-insensitive matching"
+      ]
+    },
+    {
+      "field_name": "BENEFIT_TYPE",
+      "field_id": 4,
+      "data_type": "categorical",
+      "required": true,
+      "nullable": false,
+      "constraints": {
+        "allowed_values": ["DEATH", "TPD", "IP/GSC"],
+        "case_sensitive": false
+      },
+      "validation_rules": [
+        "Must be one of: DEATH, TPD, IP/GSC",
+        "Case-insensitive matching",
+        "Determines conditional field requirements"
+      ]
+    },
+    {
+      "field_name": "SUM_INSURED",
+      "field_id": 5,
+      "data_type": "numeric",
+      "required": true,
+      "nullable": false,
+      "constraints": {
+        "min_value": 1,
+        "max_value": 10000000,
+        "allow_currency_symbols": true,
+        "allow_thousands_separators": true
+      },
+      "validation_rules": [
+        "Must be positive non-zero value",
+        "Strip currency symbols and separators before validation",
+        "Range: $1,000 - $10,000,000 for lump sum benefits",
+        "Range: $1,000 - $30,000 per month for IP/GSC"
+      ]
+    },
+    {
+      "field_name": "LOSS_DATE",
+      "field_id": 6,
+      "data_type": "date",
+      "required": true,
+      "nullable": false,
+      "constraints": {
+        "format": ["YYYY-MM-DD", "MM/DD/YYYY"],
+        "max_date": "current_date",
+        "future_allowed": false,
+        "relative_validation": "must_be_before_or_equal_to_LODGED"
+      },
+      "validation_rules": [
+        "Must be valid calendar date",
+        "Cannot be in the future",
+        "Must be before or equal to LODGED date",
+        "Typically within last 10 years"
+      ]
+    },
+    {
+      "field_name": "LODGED",
+      "field_id": 7,
+      "data_type": "date",
+      "required": true,
+      "nullable": false,
+      "constraints": {
+        "format": ["YYYY-MM-DD", "MM/DD/YYYY"],
+        "max_date": "current_date",
+        "future_allowed": false,
+        "relative_validation": "must_be_on_or_after_LOSS_DATE"
+      },
+      "validation_rules": [
+        "Must be valid calendar date",
+        "Cannot be in the future",
+        "Must be on or after LOSS_DATE"
+      ]
+    },
+    {
+      "field_name": "CLAIM_STATUS",
+      "field_id": 8,
+      "data_type": "categorical",
+      "required": true,
+      "nullable": false,
+      "constraints": {
+        "allowed_values": ["ACCEPTED", "PENDING", "DECLINED"],
+        "case_sensitive": false
+      },
+      "validation_rules": [
+        "Must be one of: ACCEPTED, PENDING, DECLINED",
+        "Case-insensitive matching",
+        "Exact match required"
+      ]
+    },
+    {
+      "field_name": "CAUSE_OF_CLAIM",
+      "field_id": 9,
+      "data_type": "string",
+      "required": true,
+      "nullable": false,
+      "constraints": {
+        "min_length": 5,
+        "max_length": 200,
+        "pattern": null
+      },
+      "validation_rules": [
+        "Must be non-empty",
+        "Minimum 5 characters",
+        "Should contain meaningful description"
+      ]
+    },
+    {
+      "field_name": "PAID_TO_DATE",
+      "field_id": 10,
+      "data_type": "numeric",
+      "required": true,
+      "nullable": false,
+      "constraints": {
+        "min_value": 0,
+        "max_value": null,
+        "decimal_places": 2,
+        "relative_validation": "should_not_exceed_SUM_INSURED_for_DEATH_TPD"
+      },
+      "validation_rules": [
+        "Must be non-negative",
+        "For DEATH/TPD: cannot exceed SUM_INSURED",
+        "For IP/GSC: can exceed SUM_INSURED over time"
+      ]
+    },
+    {
+      "field_name": "PAID_FROM_DATE",
+      "field_id": 11,
+      "data_type": "date",
+      "required": false,
+      "nullable": true,
+      "constraints": {
+        "format": ["YYYY-MM-DD", "MM/DD/YYYY"],
+        "conditional_required": "when_CLAIM_STATUS_is_ACCEPTED_and_payments_commenced",
+        "relative_validation": "must_be_after_LOSS_DATE_plus_WAITING_PERIOD"
+      },
+      "validation_rules": [
+        "Required only for ACCEPTED claims with payments",
+        "Must be valid date",
+        "Should be after LOSS_DATE and WAITING_PERIOD"
+      ]
+    },
+    {
+      "field_name": "WAITING_PERIOD",
+      "field_id": 12,
+      "data_type": "string",
+      "required": false,
+      "nullable": true,
+      "constraints": {
+        "conditional_required": "when_BENEFIT_TYPE_is_IP_GSC",
+        "pattern": "^\\d+\\s*(day|days|week|weeks|month|months)$",
+        "common_values": ["14 days", "30 days", "60 days", "90 days", "2 weeks", "4 weeks", "1 month", "3 months"]
+      },
+      "validation_rules": [
+        "Required for IP/GSC benefit type only",
+        "Not applicable for DEATH/TPD",
+        "Must follow format: number + time unit",
+        "Must be non-empty when required"
+      ]
+    },
+    {
+      "field_name": "BENEFIT_PERIOD",
+      "field_id": 13,
+      "data_type": "string",
+      "required": false,
+      "nullable": true,
+      "constraints": {
+        "conditional_required": "when_BENEFIT_TYPE_is_IP_GSC",
+        "pattern": "^(\\d+\\s*(year|years|month|months)|to age \\d+)$",
+        "common_values": ["2 years", "5 years", "10 years", "to age 60", "to age 65"]
+      },
+      "validation_rules": [
+        "Required for IP/GSC benefit type only",
+        "Not applicable for DEATH/TPD",
+        "Must follow format: number + time unit OR 'to age XX'",
+        "Must be non-empty when required"
+      ]
+    },
+    {
+      "field_name": "OCCUPATION",
+      "field_id": 14,
+      "data_type": "string",
+      "required": true,
+      "nullable": false,
+      "constraints": {
+        "min_length": 3,
+        "max_length": 100,
+        "pattern": null
+      },
+      "validation_rules": [
+        "Must be non-empty",
+        "Minimum 3 characters",
+        "Should contain meaningful job description"
+      ]
+    },
+    {
+      "field_name": "ICD_CAUSE_CODE",
+      "field_id": 15,
+      "data_type": "string",
+      "required": true,
+      "nullable": false,
+      "constraints": {
+        "min_length": 3,
+        "max_length": 10,
+        "pattern": "^[A-Z][0-9]{2}\\.?[0-9A-Z]*$",
+        "icd_version": ["ICD-10", "ICD-11"]
+      },
+      "validation_rules": [
+        "Must follow valid ICD format",
+        "ICD-10: Letter + 2 digits + optional decimal + digits/letters",
+        "Should match recognized ICD code structure"
+      ]
+    },
+    {
+      "field_name": "ACCIDENT_OR_SICKNESS",
+      "field_id": 16,
+      "data_type": "categorical",
+      "required": true,
+      "nullable": false,
+      "constraints": {
+        "allowed_values": ["ACCIDENT", "SICKNESS", "A", "S"],
+        "case_sensitive": false
+      },
+      "validation_rules": [
+        "Must be either ACCIDENT or SICKNESS",
+        "Case-insensitive matching",
+        "Binary choice only"
+      ]
+    },
+    {
+      "field_name": "CLAIM_CLOSED_REASON",
+      "field_id": 17,
+      "data_type": "string",
+      "required": false,
+      "nullable": true,
+      "constraints": {
+        "min_length": 5,
+        "max_length": 100,
+        "conditional_required": "when_claim_is_closed",
+        "recommended_values": [
+          "FULLY_PAID",
+          "RECOVERED",
+          "MAX_BENEFIT_REACHED",
+          "DECLINED",
+          "WITHDRAWN",
+          "SETTLED",
+          "INSUFFICIENT_EVIDENCE",
+          "FRAUD_DETECTED",
+          "POLICY_LAPSED",
+          "DUPLICATE_CLAIM",
+          "DEATH_OF_CLAIMANT"
+        ]
+      },
+      "validation_rules": [
+        "Required when CLAIM_CLOSED_DATE is populated",
+        "Should be from recommended values list",
+        "Free text allowed if reason not in standard list"
+      ]
+    },
+    {
+      "field_name": "CLAIM_CLOSED_DATE",
+      "field_id": 18,
+      "data_type": "date",
+      "required": false,
+      "nullable": true,
+      "constraints": {
+        "format": ["YYYY-MM-DD", "MM/DD/YYYY"],
+        "max_date": "current_date",
+        "future_allowed": false,
+        "relative_validation": "must_be_on_or_after_LODGED",
+        "conditional_required": "when_CLAIM_CLOSED_REASON_is_populated"
+      },
+      "validation_rules": [
+        "Required when CLAIM_CLOSED_REASON is populated",
+        "Must be valid date",
+        "Cannot be in the future",
+        "Must be on or after LODGED date"
+      ]
+    }
+  ],
+  "cross_field_validations": [
+    {
+      "rule_id": "CV001",
+      "description": "LOSS_DATE must be before or equal to LODGED",
+      "fields": ["LOSS_DATE", "LODGED"],
+      "validation_logic": "LOSS_DATE <= LODGED"
+    },
+    {
+      "rule_id": "CV002",
+      "description": "WAITING_PERIOD and BENEFIT_PERIOD required for IP/GSC",
+      "fields": ["BENEFIT_TYPE", "WAITING_PERIOD", "BENEFIT_PERIOD"],
+      "validation_logic": "IF BENEFIT_TYPE = 'IP/GSC' THEN WAITING_PERIOD IS NOT NULL AND BENEFIT_PERIOD IS NOT NULL"
+    },
+    {
+      "rule_id": "CV003",
+      "description": "WAITING_PERIOD and BENEFIT_PERIOD not applicable for DEATH/TPD",
+      "fields": ["BENEFIT_TYPE", "WAITING_PERIOD", "BENEFIT_PERIOD"],
+      "validation_logic": "IF BENEFIT_TYPE IN ['DEATH', 'TPD'] THEN WAITING_PERIOD IS NULL AND BENEFIT_PERIOD IS NULL"
+    },
+    {
+      "rule_id": "CV004",
+      "description": "PAID_FROM_DATE should be after LOSS_DATE plus WAITING_PERIOD",
+      "fields": ["PAID_FROM_DATE", "LOSS_DATE", "WAITING_PERIOD"],
+      "validation_logic": "IF PAID_FROM_DATE IS NOT NULL THEN PAID_FROM_DATE >= LOSS_DATE + WAITING_PERIOD"
+    },
+    {
+      "rule_id": "CV005",
+      "description": "PAID_TO_DATE should not exceed SUM_INSURED for lump sum benefits",
+      "fields": ["PAID_TO_DATE", "SUM_INSURED", "BENEFIT_TYPE"],
+      "validation_logic": "IF BENEFIT_TYPE IN ['DEATH', 'TPD'] THEN PAID_TO_DATE <= SUM_INSURED"
+    },
+    {
+      "rule_id": "CV006",
+      "description": "CLAIM_CLOSED_REASON and CLAIM_CLOSED_DATE must both be present or both absent",
+      "fields": ["CLAIM_CLOSED_REASON", "CLAIM_CLOSED_DATE"],
+      "validation_logic": "(CLAIM_CLOSED_REASON IS NOT NULL AND CLAIM_CLOSED_DATE IS NOT NULL) OR (CLAIM_CLOSED_REASON IS NULL AND CLAIM_CLOSED_DATE IS NULL)"
+    },
+    {
+      "rule_id": "CV007",
+      "description": "CLAIM_CLOSED_DATE must be on or after LODGED",
+      "fields": ["CLAIM_CLOSED_DATE", "LODGED"],
+      "validation_logic": "IF CLAIM_CLOSED_DATE IS NOT NULL THEN CLAIM_CLOSED_DATE >= LODGED"
+    },
+    {
+      "rule_id": "CV008",
+      "description": "Date sequence validation",
+      "fields": ["LOSS_DATE", "LODGED", "CLAIM_CLOSED_DATE"],
+      "validation_logic": "LOSS_DATE <= LODGED <= CLAIM_CLOSED_DATE (when CLAIM_CLOSED_DATE is present)"
+    },
+    {
+      "rule_id": "CV009",
+      "description": "PAID_FROM_DATE required for accepted claims with payments",
+      "fields": ["CLAIM_STATUS", "PAID_FROM_DATE", "PAID_TO_DATE"],
+      "validation_logic": "IF CLAIM_STATUS = 'ACCEPTED' AND PAID_TO_DATE > 0 THEN PAID_FROM_DATE IS NOT NULL"
+    }
+  ]
+}

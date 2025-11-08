@@ -1,0 +1,247 @@
+{
+  "schema_version": "1.0",
+  "last_updated": "2024-11-08",
+  "description": "Field name mapping to handle variations across different datasets",
+  "mappings": [
+    {
+      "standard_field_name": "CLAIM_NUMBER",
+      "aliases": [
+        "claim_no",
+        "claim_num",
+        "claimno",
+        "claim_id",
+        "claimid",
+        "claim_reference",
+        "reference_number",
+        "ref_no"
+      ],
+      "case_sensitive": false
+    },
+    {
+      "standard_field_name": "DATE_OF_BIRTH",
+      "aliases": [
+        "DOB",
+        "dob",
+        "birth_date",
+        "birthdate",
+        "date_birth",
+        "birth_dt",
+        "date_of_birth"
+      ],
+      "case_sensitive": false
+    },
+    {
+      "standard_field_name": "GENDER",
+      "aliases": [
+        "sex",
+        "gender_code",
+        "gender_cd",
+        "Sex",
+        "Gender"
+      ],
+      "case_sensitive": false
+    },
+    {
+      "standard_field_name": "BENEFIT_TYPE",
+      "aliases": [
+        "claim_type",
+        "claimtype",
+        "benefit",
+        "benefit_category",
+        "claim_category",
+        "type",
+        "cover_type",
+        "coverage_type"
+      ],
+      "case_sensitive": false
+    },
+    {
+      "standard_field_name": "SUM_INSURED",
+      "aliases": [
+        "sum_assured",
+        "insured_amount",
+        "cover_amount",
+        "coverage_amount",
+        "benefit_amount",
+        "sum_insured_amount",
+        "SI",
+        "SA"
+      ],
+      "case_sensitive": false
+    },
+    {
+      "standard_field_name": "LOSS_DATE",
+      "aliases": [
+        "event_date",
+        "date_of_event",
+        "incident_date",
+        "date_of_loss",
+        "loss_dt",
+        "event_dt",
+        "date_of_incident",
+        "occurrence_date"
+      ],
+      "case_sensitive": false
+    },
+    {
+      "standard_field_name": "LODGED",
+      "aliases": [
+        "lodged_date",
+        "lodgement_date",
+        "date_lodged",
+        "submission_date",
+        "date_submitted",
+        "claim_date",
+        "received_date",
+        "date_received",
+        "filing_date",
+        "notification_date",
+        "date_notified"
+      ],
+      "case_sensitive": false
+    },
+    {
+      "standard_field_name": "CLAIM_STATUS",
+      "aliases": [
+        "status",
+        "claim_state",
+        "state",
+        "current_status",
+        "processing_status"
+      ],
+      "case_sensitive": false
+    },
+    {
+      "standard_field_name": "CAUSE_OF_CLAIM",
+      "aliases": [
+        "cause",
+        "claim_cause",
+        "diagnosis",
+        "condition",
+        "reason",
+        "claim_reason",
+        "description",
+        "claim_description"
+      ],
+      "case_sensitive": false
+    },
+    {
+      "standard_field_name": "PAID_TO_DATE",
+      "aliases": [
+        "total_paid",
+        "amount_paid",
+        "paid_amount",
+        "payments_to_date",
+        "cumulative_paid",
+        "paid_ytd",
+        "PTD"
+      ],
+      "case_sensitive": false
+    },
+    {
+      "standard_field_name": "PAID_FROM_DATE",
+      "aliases": [
+        "payment_start_date",
+        "benefit_start_date",
+        "payment_commencement",
+        "commencement_date",
+        "start_date",
+        "payment_from"
+      ],
+      "case_sensitive": false
+    },
+    {
+      "standard_field_name": "WAITING_PERIOD",
+      "aliases": [
+        "wait_period",
+        "elimination_period",
+        "deferred_period",
+        "WP",
+        "waiting_pd",
+        "wait_pd"
+      ],
+      "case_sensitive": false
+    },
+    {
+      "standard_field_name": "BENEFIT_PERIOD",
+      "aliases": [
+        "payment_period",
+        "coverage_period",
+        "benefit_duration",
+        "BP",
+        "benefit_pd",
+        "benefit_term"
+      ],
+      "case_sensitive": false
+    },
+    {
+      "standard_field_name": "OCCUPATION",
+      "aliases": [
+        "job",
+        "job_title",
+        "occupation_code",
+        "occ",
+        "profession",
+        "employment",
+        "position"
+      ],
+      "case_sensitive": false
+    },
+    {
+      "standard_field_name": "ICD_CAUSE_CODE",
+      "aliases": [
+        "ICD_code",
+        "ICD10",
+        "ICD-10",
+        "diagnosis_code",
+        "medical_code",
+        "cause_code",
+        "icd"
+      ],
+      "case_sensitive": false
+    },
+    {
+      "standard_field_name": "ACCIDENT_OR_SICKNESS",
+      "aliases": [
+        "claim_nature",
+        "nature",
+        "accident_sickness",
+        "A_or_S",
+        "incident_type",
+        "loss_type"
+      ],
+      "case_sensitive": false
+    },
+    {
+      "standard_field_name": "CLAIM_CLOSED_REASON",
+      "aliases": [
+        "closure_reason",
+        "closed_reason",
+        "reason_for_closure",
+        "close_reason",
+        "termination_reason",
+        "finalization_reason"
+      ],
+      "case_sensitive": false
+    },
+    {
+      "standard_field_name": "CLAIM_CLOSED_DATE",
+      "aliases": [
+        "closure_date",
+        "closed_date",
+        "date_closed",
+        "finalization_date",
+        "date_finalized",
+        "termination_date",
+        "close_dt"
+      ],
+      "case_sensitive": false
+    }
+  ],
+  "mapping_notes": [
+    "All mappings are case-insensitive by default",
+    "Fuzzy matching may be needed for close variations",
+    "Underscores, hyphens, and spaces should be normalized during matching",
+    "Always map to the standard field name before validation"
+  ]
+}

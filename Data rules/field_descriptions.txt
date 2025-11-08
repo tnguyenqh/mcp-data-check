@@ -1,0 +1,150 @@
+INSURANCE CLAIMS DATA DICTIONARY 
+
+This dictionary provides descriptions and general rules for insurance data validation fields.
+
+================================================================================
+FIELD SCHEMA STRUCTURE:
+[FIELD_NAME] | Type | Required | Constraints | Valid_Values | Examples
+================================================================================
+
+[CLAIM_NUMBER]
+Type: String
+Required: Always
+Constraints: 8-20 characters, unique, non-empty
+Format: Numeric OR alphabetic OR alphanumeric (varies by source)
+Valid_Values: Any combination of letters/numbers
+Examples: 20240001234567 | ABCDEFGHIJ | CLM2024ABC123
+
+[DATE_OF_BIRTH]
+Type: Date
+Required: Always
+Format: YYYY-MM-DD OR MM/DD/YYYY
+Constraints: Historical date only, 1900-01-01 to current_date
+Validation: Must be valid calendar date, not future-dated
+
+[GENDER]
+Type: String (categorical)
+Required: Always
+Valid_Values: M|MALE|F|FEMALE|X|OTHER|U|UNKNOWN
+Validation: Case-insensitive matching
+
+[BENEFIT_TYPE]
+Type: String (categorical)
+Required: Always
+Valid_Values: DEATH | TPD | IP/GSC
+Definitions: DEATH=life_insurance_death_benefit | TPD=Total_Permanent_Disability | IP/GSC=Income_Protection
+Validation: Case-insensitive, must match one of three values
+
+[SUM_INSURED]
+Type: Numeric (Decimal/Float)
+Required: Always
+Constraints: Positive numbers only, >0
+Range: 1000-10000000 (lump_sum) | 1000-30000 (monthly for IP/GSC)
+Accepted_Formats: Plain numbers | Decimals | Currency symbols | Thousands separators | Scientific notation
+Validation: Strip currency/separators, parse to number, must be >0
+
+[LOSS_DATE]
+Type: Date
+Required: Always
+Format: YYYY-MM-DD OR MM/DD/YYYY
+Constraints: ≤ current_date, ≤ LODGED, typically within 10 years
+Validation: Valid calendar date, not future-dated
+
+[LODGED]
+Type: Date
+Required: Always
+Format: YYYY-MM-DD OR MM/DD/YYYY
+Constraints: ≤ current_date, ≥ LOSS_DATE
+Validation: Valid calendar date, not future-dated
+
+[CLAIM_STATUS]
+Type: String (categorical)
+Required: Always
+Valid_Values: ACCEPTED | PENDING | DECLINED
+Validation: Case-insensitive, exact match required
+
+[CAUSE_OF_CLAIM]
+Type: String (free text)
+Required: Always
+Constraints: 5-200 characters, non-empty
+Examples: Heart Attack | Back Injury | Cancer | Motor Vehicle Accident
+
+[PAID_TO_DATE]
+Type: Decimal
+Required: Always
+Constraints: ≥0, cannot exceed SUM_INSURED for DEATH/TPD
+Validation: Non-negative numeric value
+
+[PAID_FROM_DATE]
+Type: Date
+Required: Conditional (only if CLAIM_STATUS=ACCEPTED AND payments commenced)
+Format: YYYY-MM-DD OR MM/DD/YYYY
+Constraints: ≥ LOSS_DATE + WAITING_PERIOD
+Validation: Valid date, after loss_date and waiting_period
+
+[WAITING_PERIOD]
+Type: String
+Required: Conditional (BENEFIT_TYPE=IP/GSC only)
+Format: "[number] [unit]" where unit in {days, weeks, months}
+Examples: 30 days | 2 weeks | 90 days
+Not_Applicable: DEATH, TPD
+Validation: Must be non-empty for IP/GSC
+
+[BENEFIT_PERIOD]
+Type: String
+Required: Conditional (BENEFIT_TYPE=IP/GSC only)
+Format: "[number] years" OR "to age [number]"
+Examples: 2 years | 5 years | to age 65
+Not_Applicable: DEATH, TPD
+Validation: Must be non-empty for IP/GSC
+
+[OCCUPATION]
+Type: String (free text)
+Required: Always
+Constraints: 3-100 characters, meaningful job description
+Examples: Software Engineer | Registered Nurse | Construction Worker
+
+[ICD_CAUSE_CODE]
+Type: String (alphanumeric)
+Required: Always
+Format: ICD-10 (3-7 chars) OR ICD-11 (variable)
+Pattern: [A-Z][0-9]{2}\.?[0-9A-Z]*
+Examples: I21.9 | M54.5 | C50.9 | S06.0
+Validation: Must follow ICD format structure
+
+[ACCIDENT_OR_SICKNESS]
+Type: String (categorical)
+Required: Always
+Valid_Values: ACCIDENT | SICKNESS
+Validation: Case-insensitive, binary choice only
+
+[CLAIM_CLOSED_REASON]
+Type: String (categorical)
+Required: Conditional (only when claim is closed)
+Valid_Values: FULLY_PAID | RECOVERED | MAX_BENEFIT_REACHED | DECLINED | WITHDRAWN | SETTLED | INSUFFICIENT_EVIDENCE | FRAUD_DETECTED | POLICY_LAPSED | DUPLICATE_CLAIM | DEATH_OF_CLAIMANT
+Validation: Should be present if CLAIM_CLOSED_DATE exists
+
+[CLAIM_CLOSED_DATE]
+Type: Date
+Required: Conditional (only when claim is closed)
+Format: YYYY-MM-DD OR MM/DD/YYYY
+Constraints: ≤ current_date, ≥ LODGED
+Validation: Must be present when CLAIM_CLOSED_REASON exists
+
+================================================================================
+CONDITIONAL LOGIC RULES:
+================================================================================
+IF BENEFIT_TYPE = "IP/GSC" THEN WAITING_PERIOD = REQUIRED AND BENEFIT_PERIOD = REQUIRED
+IF BENEFIT_TYPE IN ["DEATH", "TPD"] THEN WAITING_PERIOD = NULL_ALLOWED AND BENEFIT_PERIOD = NULL_ALLOWED
+IF CLAIM_STATUS = "ACCEPTED" AND payments_commenced THEN PAID_FROM_DATE = REQUIRED
+IF claim_closed THEN CLAIM_CLOSED_DATE = REQUIRED AND CLAIM_CLOSED_REASON = REQUIRED
+IF BENEFIT_TYPE IN ["DEATH", "TPD"] THEN PAID_TO_DATE ≤ SUM_INSURED
+
+================================================================================
+DATE VALIDATION SEQUENCE:
+================================================================================
+LOSS_DATE ≤ LODGED ≤ CLAIM_CLOSED_DATE (when present)
+LOSS_DATE + WAITING_PERIOD ≤ PAID_FROM_DATE (for IP/GSC)
+All dates ≤ current_date
+
+================================================================================
